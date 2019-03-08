@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:flutter_app/Authentification.dart';
 import 'package:flutter_app/Enums.dart';
 import 'package:flutter_app/Event.dart';
