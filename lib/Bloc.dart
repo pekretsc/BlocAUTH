@@ -1,74 +1,92 @@
 import 'dart:async';
-import 'package:flutter_app/Authentification.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_app/Enums.dart';
 import 'package:flutter_app/Event.dart';
+import 'package:flutter_app/User.dart';
 import 'package:rxdart/rxdart.dart';
 
 class StateBloc {
-  FireBaseAuth _auth = FireBaseAuth();
-  AuthStatus _authStatus;
+  MyUser _user = MyUser(auth: FirebaseAuth.instance);
 
-  final _StateController = BehaviorSubject<AuthStatus>();
-  StreamSink<AuthStatus> get _inBlockResource => _StateController.sink;
-  // For state, exposing only a stream which outputs data
-  Stream<AuthStatus> get authStatusSnap => _StateController.stream;
+  final _StateController = BehaviorSubject<MyUser>();
+  StreamSink<MyUser> get _inBlockResource => _StateController.sink;
+  Stream<MyUser> get userState => _StateController.stream;
 
   final _EventController = StreamController<Event>();
-  // For events, exposing only a sink which is an input
   Sink<Event> get authStatusEvent => _EventController.sink;
 
   StateBloc() {
-    _authStatus = AuthStatus.NOT_DETERMINED;
-    _inBlockResource.add(_authStatus);
-    print(_inBlockResource.toString()); // NOT NULL ANYMORE
+    _inBlockResource.add(_user);
+    //print(_inBlockResource.toString()); // NOT NULL ANYMORE
     // Whenever there is a new event, we want to map it to a new state
     _EventController.stream.listen(_mapEventToState);
   }
 
-  void _mapEventToState(Event event) {
+  void _mapEventToState(Event event) async {
     if (event is LogInEvent) {
-      _authStatus = AuthStatus.LOGING_IN;
-      //ToDO Future login -> set AuthState to LogedIN on success or fail on Fail
-      authaction(event.email, event.password);
+      _user.authStatus = AuthStatus.LOGING_IN;
+      _inBlockResource.add(_user);
+      await logIn(event.email, event.password).catchError((e) {
+        _user.error = 'Please enter your mail address and password';
+        _user.authStatus = AuthStatus.FAILED;
+        _inBlockResource.add(_user);
+      });
       print('login');
     }
     if (event is SignInEvent) {
-      // _authStatus = signIN();
-      _authStatus = AuthStatus.SIGNED_IN_NOTVERYFIED;
-      print('signin');
+      _user.authStatus = AuthStatus.LOGING_IN;
+      _inBlockResource.add(_user);
+      signUp(event.email, event.password);
+      print('signin verification mail send');
     }
     if (event is PWChacngeEvent) {
-      // _authStatus = pwChange();
-
-      _authStatus = AuthStatus.FAILED;
       print('pwChange');
     }
-
-    _inBlockResource.add(_authStatus);
+    _inBlockResource.add(_user);
   }
 
   void dispose() {
-    _StateController.close();
     _EventController.close();
   }
 
-  Future<void> authaction(String email, String password) async {
-    _auth.signIn(email, password).whenComplete(() {
-      _authStatus = AuthStatus.LOGED_IN;
-      _inBlockResource.add(_authStatus);
-    }).catchError((e) {
+  Future<void> logIn(String email, String password) async {
+    _user.user = await _user.auth
+        .signInWithEmailAndPassword(email: email, password: password)
+        .catchError((e) {
+      _user.error = e.toString();
       print(e.toString());
-      print(e.code);
-      print(e.message);
-      _authStatus = AuthStatus.FAILED;
-      _inBlockResource.add(_authStatus);
+      print(e.runtimeType.toString());
+      _user.authStatus = AuthStatus.FAILED;
+      _inBlockResource.add(_user);
+    }).whenComplete(() {
+      _user.authStatus = AuthStatus.LOGED_IN;
+      _user.auth.currentUser().then((user) {
+        _user.isVeryfied = user.isEmailVerified;
+      });
+      _inBlockResource.add(_user);
     });
   }
 
-  Future<AuthStatus> signUp(Future<String> signIn) async {
-    signIn.whenComplete(() {
-      return AuthStatus.LOGED_IN;
+  Future<void> signUp(String email, String password) async {
+    _user.user = await _user.auth
+        .createUserWithEmailAndPassword(email: email, password: password)
+        .catchError((e) {
+      _user.error = e.toString();
+      print(e.toString());
+      print(e.runtimeType.toString());
+      _user.authStatus = AuthStatus.FAILED;
+      _inBlockResource.add(_user);
+    }).whenComplete(() {
+      _user.authStatus = AuthStatus.LOGED_IN;
+      _inBlockResource.add(_user);
+      _user.auth.currentUser().then((user) {
+        user.sendEmailVerification();
+      });
     });
-    return AuthStatus.LOGING_IN;
+  }
+
+  Future<AuthStatus> changePW(String email, String password) async {
+    return AuthStatus.FAILED;
   }
 }

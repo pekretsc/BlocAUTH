@@ -2,27 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/Enums.dart';
 import 'package:flutter_app/Event.dart';
 import 'package:flutter_app/InstanceProvider.dart';
+import 'package:flutter_app/User.dart';
 
-class LoginPage extends StatefulWidget {
-  String email;
-  String password;
-  String rePassword;
-  String test = '';
-  AuthStatus _authStatus;
-
-  int rebuild = 0;
+class LoginPage extends StatelessWidget {
   @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    return _LoginPageState();
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login Page'),
+      ),
+      body: LoginBody(),
+    );
   }
 }
 
-class _LoginPageState extends State<LoginPage> {
+class LoginBody extends StatefulWidget {
+  String email = '';
+  String password = '';
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return null;
+  }
+}
+
+class _LoginBodyState extends State<LoginBody> {
   @override
   void initState() {
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => executeAfterWholeBuildProcess(context));
     // TODO: implement initState
     super.initState();
   }
@@ -35,60 +42,73 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    widget.test = '${widget.test} not executed';
     // TODO: implement build
-    return Material(
-        child: Scaffold(
-      appBar: AppBar(
-        title: Text('LoginPage'),
-      ),
-      body: StreamBuilder(
-          stream: InstanceProvider().stateBloc.authStatusSnap,
-          builder: (context, AsyncSnapshot snapshot) {
-            widget._authStatus = snapshot.data;
-            widget.rebuild++;
-            print(widget._authStatus.toString());
-            print(snapshot.data.toString());
-            print(widget.rebuild.toString());
-            return Column(
-              children: <Widget>[
-                TextFormField(
-                  autovalidate: true,
-                  decoration: InputDecoration(hintText: 'Email'),
-                  validator: (value) {
-                    widget.email = value;
-                  },
-                ),
-                TextFormField(
-                  autovalidate: true,
-                  obscureText: true,
-                  decoration: InputDecoration(hintText: 'Password'),
-                  validator: (value) {
-                    widget.password = value;
-                  },
-                ),
-                FlatButton(
-                    onPressed: () {
-                      InstanceProvider().stateBloc.authStatusEvent.add(
-                          LogInEvent(
-                              email: widget.email, password: widget.password));
-                    },
-                    child: Text('Login')),
-                FlatButton(
-                    onPressed: () {
-                      InstanceProvider().stateBloc.authStatusEvent.add(
-                          SignInEvent(
-                              email: widget.email, password: widget.password));
-                    },
-                    child: Text('SignIn')),
-                FlatButton(onPressed: () {}, child: Text('ChangePW')),
-              ],
-            );
-          }),
-    ));
+    return StreamBuilder(
+      stream: InstanceProvider().stateBloc.userState,
+      builder: (context, AsyncSnapshot<MyUser> snapshot) {
+        if (snapshot.connectionState == ConnectionState.active) {
+          switch (snapshot.data.authStatus) {
+            case AuthStatus.NOT_DETERMINED:
+              break;
+            case AuthStatus.LOGING_IN:
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  });
+              break;
+            case AuthStatus.FAILED:
+              return UIElements(widget, snapshot);
+              break;
+            case AuthStatus.LOGED_IN:
+              Navigator.pushNamed(context, 'testPage');
+              break;
+            default:
+          }
+        }
+      },
+    );
   }
+}
 
-  void executeAfterWholeBuildProcess(BuildContext context) {
-    print('executeAfterWholeBuildProcess');
+class UIElements extends StatelessWidget {
+  LoginBody body;
+  AsyncSnapshot<MyUser> snapshot;
+
+  UIElements(this.body, this.snapshot);
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        TextFormField(
+          initialValue: body.email,
+          validator: (val) {
+            body.email = val;
+          },
+          decoration: InputDecoration(hintText: 'Email'),
+        ),
+        TextFormField(
+          initialValue: body.password,
+          validator: (val) {
+            body.password = val;
+          },
+          decoration: InputDecoration(hintText: 'Password'),
+        ),
+        RaisedButton(
+          child: Text('LogIn'),
+          onPressed: () {
+            InstanceProvider()
+                .stateBloc
+                .authStatusEvent
+                .add(LogInEvent(email: body.email, password: body.password));
+          },
+        )
+      ],
+    );
   }
 }
