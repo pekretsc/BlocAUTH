@@ -17,28 +17,8 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-class LoginBody extends StatefulWidget {
-  String email;
-  String password;
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    return _LoginBodyState();
-  }
-}
-
-class _LoginBodyState extends State<LoginBody> {
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
+class LoginBody extends StatelessWidget {
+  Entrys entrys = Entrys();
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +31,16 @@ class _LoginBodyState extends State<LoginBody> {
             child: Text('1'),
           );
         } else {
+          Entrys().setERRORTEXT(snapshot.data.error);
           switch (snapshot.data.authStatus) {
             case AuthStatus.NOT_DETERMINED:
-              return UIElements(widget, snapshot);
+              return UIElements(snapshot);
               break;
             case AuthStatus.LOGING_IN:
               return Loading();
               break;
             case AuthStatus.FAILED:
-              return UIElements(widget, snapshot);
+              return UIElements(snapshot);
               break;
             case AuthStatus.LOGED_IN:
               Navigator.pushNamed(context, 'testPage');
@@ -85,10 +66,9 @@ class Loading extends StatelessWidget {
 }
 
 class UIElements extends StatelessWidget {
-  LoginBody body;
   AsyncSnapshot<MyUser> snapshot;
 
-  UIElements(this.body, this.snapshot);
+  UIElements(this.snapshot);
 
   @override
   Widget build(BuildContext context) {
@@ -97,29 +77,72 @@ class UIElements extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         TextFormField(
-          initialValue: body.email,
+          autovalidate: true,
+          initialValue: Entrys().getEMAIL(),
           validator: (val) {
-            body.email = val;
+            Entrys().setEMAIL(val);
           },
           decoration: InputDecoration(hintText: 'Email'),
         ),
         TextFormField(
-          initialValue: body.password,
+          autovalidate: true,
+          initialValue: Entrys().getPASSWORD(),
           validator: (val) {
-            body.password = val;
+            Entrys().setPASSWORD(val);
           },
           decoration: InputDecoration(hintText: 'Password'),
         ),
         RaisedButton(
           child: Text('LogIn'),
           onPressed: () {
-            InstanceProvider()
-                .stateBloc
-                .authStatusEvent
-                .add(LogInEvent(email: body.email, password: body.password));
+            InstanceProvider().stateBloc.authStatusEvent.add(LogInEvent(
+                email: Entrys().getPASSWORD(),
+                password: Entrys().getPASSWORD()));
           },
         )
       ],
     );
+  }
+}
+
+class Entrys {
+  static final Entrys _singleton = Entrys._internal();
+
+  String _email;
+  String _password;
+  String _errorMessage;
+
+  factory Entrys() {
+    return _singleton;
+  }
+
+  Entrys._internal() {
+    _email = '';
+    _password = '';
+    _errorMessage = '';
+  }
+
+  String getEMAIL() {
+    return _email;
+  }
+
+  String getPASSWORD() {
+    return _password;
+  }
+
+  String getERRORTEXT() {
+    return _errorMessage;
+  }
+
+  void setEMAIL(String email) {
+    _email = email;
+  }
+
+  void setPASSWORD(String password) {
+    _password = password;
+  }
+
+  void setERRORTEXT(String errrorMessage) {
+    _errorMessage = errrorMessage;
   }
 }
