@@ -27,6 +27,7 @@ class StateBloc {
     if (event is LogInEvent) {
       _user.authStatus = AuthStatus.LOGING_IN;
       _inBlockResource.add(_user);
+
       await logIn(event.email, event.password).catchError((e) {
         _user.error = 'Please enter your mail address and password';
         _user.authStatus = AuthStatus.FAILED;
@@ -51,19 +52,8 @@ class StateBloc {
   }
 
   Future<void> logIn(String email, String password) async {
-    _user.user = await _user.auth
-        .signInWithEmailAndPassword(email: email, password: password)
-        .catchError((e) {
-      _user.error = e.toString();
-      print(e.toString());
-      print(e.runtimeType.toString());
+    Future.delayed(Duration(seconds: 5), () {
       _user.authStatus = AuthStatus.FAILED;
-      _inBlockResource.add(_user);
-    }).whenComplete(() {
-      _user.authStatus = AuthStatus.LOGED_IN;
-      _user.auth.currentUser().then((user) {
-        _user.isVeryfied = user.isEmailVerified;
-      });
       _inBlockResource.add(_user);
     });
   }

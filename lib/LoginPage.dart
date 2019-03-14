@@ -18,12 +18,12 @@ class LoginPage extends StatelessWidget {
 }
 
 class LoginBody extends StatefulWidget {
-  String email = '';
-  String password = '';
+  String email;
+  String password;
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return null;
+    return _LoginBodyState();
   }
 }
 
@@ -46,18 +46,17 @@ class _LoginBodyState extends State<LoginBody> {
     return StreamBuilder(
       stream: InstanceProvider().stateBloc.userState,
       builder: (context, AsyncSnapshot<MyUser> snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
+        if (snapshot.data == null) {
+          return Container(
+            child: Text('1'),
+          );
+        } else {
           switch (snapshot.data.authStatus) {
             case AuthStatus.NOT_DETERMINED:
+              return UIElements(widget, snapshot);
               break;
             case AuthStatus.LOGING_IN:
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  });
+              return Loading();
               break;
             case AuthStatus.FAILED:
               return UIElements(widget, snapshot);
@@ -66,9 +65,21 @@ class _LoginBodyState extends State<LoginBody> {
               Navigator.pushNamed(context, 'testPage');
               break;
             default:
+              return Container();
           }
         }
       },
+    );
+  }
+}
+
+class Loading extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[CircularProgressIndicator()],
     );
   }
 }
