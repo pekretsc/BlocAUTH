@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/FireDBPage.dart';
 import 'package:flutter_app/InstanceProvider.dart';
-import 'package:flutter_app/LoginPage.dart';
 import 'package:flutter_app/TestPage.dart';
 
 void main() => runApp(MyApp());
@@ -34,9 +33,8 @@ class _MyAppState extends State<MyApp> {
     // TODO: implement build
     return MaterialApp(
       routes: {
-        '/': (context) => LoginPage(),
+        '/': (context) => FireDBPage(),
         '/testPage': (context) => TestPage(),
-        '/FireDataBase': (context) => FireDBPage(),
       },
     );
   }
