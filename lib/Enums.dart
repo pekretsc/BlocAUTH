@@ -4,3 +4,10 @@ enum AuthStatus {
   LOGING_IN,
   FAILED,
 }
+
+enum UIState {
+  NOT_DETERMINED,
+  Waiting,
+  QuietWaiting,
+  Normal,
+}

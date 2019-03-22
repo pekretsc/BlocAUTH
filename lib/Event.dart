@@ -15,3 +15,11 @@ class SignInEvent extends Event {
 }
 
 class PWChacngeEvent extends Event {}
+
+class DBAddEvent extends Event {}
+
+class DBChangeEvent extends Event {}
+
+class DBGetEvent extends Event {}
+
+class DBDeleteEvent extends Event {}

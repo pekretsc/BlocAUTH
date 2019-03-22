@@ -25,25 +25,44 @@ class StateBloc {
 
   void _mapEventToState(Event event) async {
     if (event is LogInEvent) {
-      _user.authStatus = AuthStatus.LOGING_IN;
-      _inBlockResource.add(_user);
-
-      await logIn(event.email, event.password).catchError((e) {
-        _user.error = 'Please enter your mail address and password';
-        _user.authStatus = AuthStatus.FAILED;
-        _inBlockResource.add(_user);
+      _addStatusToStream(AuthStatus.LOGING_IN);
+      String s =
+          await logIn(event.email, event.password).then((String a) async {
+        if (a == '') {
+          _user.user = await _user.auth.currentUser();
+          if (!_user.user.isEmailVerified) {
+            _user.user.sendEmailVerification();
+          }
+          _addStatusToStream(AuthStatus.LOGED_IN);
+        } else {
+          _user.error = a;
+          _addStatusToStream(AuthStatus.FAILED);
+        }
       });
-      print('login');
     }
     if (event is SignInEvent) {
-      _user.authStatus = AuthStatus.LOGING_IN;
-      _inBlockResource.add(_user);
-      signUp(event.email, event.password);
-      print('signin verification mail send');
+      _addStatusToStream(AuthStatus.LOGING_IN);
+      String s =
+          await signUp(event.email, event.password).then((String a) async {
+        if (a == '') {
+          _user.user = await _user.auth.currentUser();
+          _user.user.sendEmailVerification();
+          _addStatusToStream(AuthStatus.LOGED_IN);
+        } else {
+          _user.error = a;
+          _addStatusToStream(AuthStatus.FAILED);
+        }
+      });
     }
     if (event is PWChacngeEvent) {
       print('pwChange');
     }
+
+    _inBlockResource.add(_user);
+  }
+
+  void _addStatusToStream(AuthStatus a) {
+    _user.authStatus = a;
     _inBlockResource.add(_user);
   }
 
@@ -51,29 +70,30 @@ class StateBloc {
     _EventController.close();
   }
 
-  Future<void> logIn(String email, String password) async {
-    Future.delayed(Duration(seconds: 5), () {
-      _user.authStatus = AuthStatus.FAILED;
-      _inBlockResource.add(_user);
-    });
+  Future<String> logIn(String email, String password) async {
+    print(email);
+    print(password);
+    try {
+      FirebaseUser user = await _user.auth
+          .signInWithEmailAndPassword(email: email, password: password);
+      return '';
+    } on Exception catch (e) {
+      print(e.toString());
+      return e.toString();
+    }
   }
 
-  Future<void> signUp(String email, String password) async {
-    _user.user = await _user.auth
-        .createUserWithEmailAndPassword(email: email, password: password)
-        .catchError((e) {
-      _user.error = e.toString();
+  Future<String> signUp(String email, String password) async {
+    print(email);
+    print(password);
+    try {
+      FirebaseUser user = await _user.auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+      return '';
+    } on Exception catch (e) {
       print(e.toString());
-      print(e.runtimeType.toString());
-      _user.authStatus = AuthStatus.FAILED;
-      _inBlockResource.add(_user);
-    }).whenComplete(() {
-      _user.authStatus = AuthStatus.LOGED_IN;
-      _inBlockResource.add(_user);
-      _user.auth.currentUser().then((user) {
-        user.sendEmailVerification();
-      });
-    });
+      return e.toString();
+    }
   }
 
   Future<AuthStatus> changePW(String email, String password) async {
