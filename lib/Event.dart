@@ -14,7 +14,10 @@ class SignInEvent extends Event {
   SignInEvent({@required this.email, @required this.password});
 }
 
-class PWChacngeEvent extends Event {}
+class PWChacngeEvent extends Event {
+  String email;
+  PWChacngeEvent({@required this.email});
+}
 
 class DBAddEvent extends Event {}
 
@@ -23,3 +26,9 @@ class DBChangeEvent extends Event {}
 class DBGetEvent extends Event {}
 
 class DBDeleteEvent extends Event {}
+
+class LoadCounterDBEvent extends Event {}
+
+class AddCounterToDBEvent extends Event {}
+
+class DeleteCounterToDBEvent extends Event {}

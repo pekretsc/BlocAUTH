@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/CounterPage.dart';
 import 'package:flutter_app/FireDBPage.dart';
 import 'package:flutter_app/HomePage.dart';
 import 'package:flutter_app/InstanceProvider.dart';
@@ -38,7 +39,8 @@ class _MyAppState extends State<MyApp> {
         '/': (context) => HomePage(),
         '/testPage': (context) => TestPage(),
         '/FireDBPage': (context) => FireDBPage(),
-        '/LoginPage': (context) => LoginPage()
+        '/LoginPage': (context) => LoginPage(),
+        '/CounterPage': (context) => CounterPage()
       },
     );
   }

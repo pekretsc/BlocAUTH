@@ -56,6 +56,7 @@ class StateBloc {
     }
     if (event is PWChacngeEvent) {
       print('pwChange');
+      String s = await changePW(event.email);
     }
 
     _inBlockResource.add(_user);
@@ -96,7 +97,8 @@ class StateBloc {
     }
   }
 
-  Future<AuthStatus> changePW(String email, String password) async {
-    return AuthStatus.FAILED;
+  Future<String> changePW(String email) async {
+    _user.auth.sendPasswordResetEmail(email: email);
+    return 'Please check your Inbox';
   }
 }

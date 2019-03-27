@@ -28,6 +28,12 @@ class HomePage extends StatelessWidget {
               Navigator.pushNamed(context, '/FireDBPage');
             },
           ),
+          RaisedButton(
+            child: Text('CounterPage'),
+            onPressed: () {
+              Navigator.pushNamed(context, '/CounterPage');
+            },
+          ),
         ],
       ),
     );

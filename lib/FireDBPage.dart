@@ -25,7 +25,7 @@ class _FireDBPageState extends State<FireDBPage> {
 
   @override
   Widget build(BuildContext context) {
-    DBBloc db = DBBloc();
+    UserBloc db = UserBloc();
     // TODO: implement build
     return Scaffold(
         appBar: AppBar(
@@ -33,40 +33,31 @@ class _FireDBPageState extends State<FireDBPage> {
         ),
         body: StreamBuilder(
             stream: db.BlockResource,
-            builder: (context, AsyncSnapshot snapshot) {
-              String text = 'Text';
-              if (snapshot.data != null) {
-                text = snapshot.data.toString();
-              }
-              return Column(
-                children: <Widget>[
-                  Text('$text'),
-                  RaisedButton(
-                    child: Text('Add Document'),
-                    onPressed: () {
-                      db.XEventSink.add(DBAddEvent());
-                    },
-                  ),
-                  RaisedButton(
-                    child: Text('Change Document'),
-                    onPressed: () {
-                      db.XEventSink.add(DBChangeEvent());
-                    },
-                  ),
-                  RaisedButton(
-                    child: Text('Get Document'),
-                    onPressed: () {
-                      db.XEventSink.add(DBGetEvent());
-                    },
-                  ),
-                  RaisedButton(
-                    child: Text('Delete Document'),
-                    onPressed: () {
-                      db.XEventSink.add(DBDeleteEvent());
-                    },
-                  ),
-                ],
-              );
-            }));
+            builder: (context, AsyncSnapshot<UIInput> snapshot) {
+              return ListView.builder(
+                  itemCount: snapshot.data.documentText.length,
+                  itemBuilder: (context, int index) {
+                    return ListTile(
+                      title: Text(snapshot.data.documentText[index]),
+                      subtitle: Text(snapshot.data.documentText[index]),
+                    );
+                  });
+            }),
+        bottomNavigationBar: BottomNavigationBar(items: [
+          BottomNavigationBarItem(
+              icon: IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    db.XEventSink.add(DBAddEvent());
+                  }),
+              title: Text('Add')),
+          BottomNavigationBarItem(
+              icon: IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    db.XEventSink.add(DBDeleteEvent());
+                  }),
+              title: Text('Del')),
+        ]));
   }
 }
