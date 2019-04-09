@@ -11,3 +11,10 @@ enum UIState {
   QuietWaiting,
   Normal,
 }
+
+enum DBState {
+  NOT_DETERMINED,
+  Working,
+  Done,
+  Failed,
+}

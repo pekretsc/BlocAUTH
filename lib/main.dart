@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
         '/testPage': (context) => TestPage(),
         '/FireDBPage': (context) => FireDBPage(),
         '/LoginPage': (context) => LoginPage(),
-        '/CounterPage': (context) => CounterPage()
+        '/CounterPage': (context) => CounterPage(),
       },
     );
   }

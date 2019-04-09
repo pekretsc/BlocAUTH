@@ -1,8 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_app/CounterBloc.dart';
 import 'package:flutter_app/Event.dart';
-import 'package:rxdart/rxdart.dart';
 
 class CounterPage extends StatelessWidget {
   CounterBloc _cBloc = CounterBloc();
@@ -10,77 +8,86 @@ class CounterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Material(
-      child: StreamBuilder(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Example 1'),
+      ),
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                _cBloc.XEventSink.add(AddCounterToDBEvent());
+              }),
+          IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                _cBloc.XEventSink.add(LoadCounterDBEvent());
+              }),
+          IconButton(
+              icon: Icon(Icons.cancel),
+              onPressed: () {
+                _cBloc.XEventSink.add(DeleteCounterToDBEvent());
+              }),
+        ],
+      ),
+      body: StreamBuilder(
           stream: _cBloc.BlockResource,
           builder: (context, AsyncSnapshot<CounterDB> snapshot) {
             //ToDO Snapshot für UI Aufbereiten
             //ToDO Snapshot sollte eine Liste von Counter Objekten sein  die im grunde nur den aktuellen Wert des Counters beinhalten
             //ToDO für jeden index in der liste muss ein Element zur representation des Counters angelegt und angeteigt werden
-            List<CounterWidget> counters = createCouters(snapshot);
-            return Container(); //ToDO UI anzeigen und mit Datenfüllen
+            if (snapshot.hasData) {
+              List<Widget> cardList = [];
+              snapshot.data.counterList.forEach((c) {
+                cardList.add(CounterCard(c, _cBloc));
+              });
+
+              return GridView.count(crossAxisCount: 2, children: cardList);
+            } else {
+              return CircularProgressIndicator();
+            }
           }),
     );
   }
-
-  List<CounterWidget> createCouters(AsyncSnapshot<CounterDB> snapshot) {
-    List<CounterWidget> counters = [];
-    if (snapshot.data != null) {}
-    return counters;
-  }
 }
 
-class CounterWidget extends StatelessWidget {
+class CounterCard extends StatelessWidget {
+  Counter c;
+  CounterBloc cBloc;
+  CounterCard(
+    this.c,
+    this.cBloc,
+  );
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return null;
+    return Card(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Text(c.docKey),
+          Text(c.counter.toString()),
+          Text(c.id.toString()),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    cBloc.XEventSink.add(AddEvent(c.docKey));
+                  }),
+              IconButton(
+                  icon: Icon(Icons.minimize),
+                  onPressed: () {
+                    cBloc.XEventSink.add(SubEvent(c.docKey));
+                  })
+            ],
+          ),
+        ],
+      ),
+    );
   }
-}
-
-class CounterBloc {
-  CounterDB _conter = CounterDB();
-
-  final _StateController = BehaviorSubject<CounterDB>();
-  StreamSink<CounterDB> get _inBlockResource => _StateController.sink;
-  // For state, exposing only a stream which outputs data
-  Stream<CounterDB> get BlockResource => _StateController.stream;
-
-  final _BlockResourceEventController = StreamController<Event>();
-  // For events, exposing only a sink which is an input
-  Sink<Event> get XEventSink => _BlockResourceEventController.sink;
-
-  XResource() {
-    _inBlockResource.add(_conter);
-    //ToDO Init CouterDB
-    // Whenever there is a new event, we want to map it to a new state
-    _BlockResourceEventController.stream.listen(_mapEventToState);
-  }
-
-  void _mapEventToState(Event event) {
-    if (event is LoadCounterDBEvent) {
-      //ToDO reload CouterDB
-    }
-    if (event is AddCounterToDBEvent) {}
-    if (event is DeleteCounterToDBEvent) {}
-    _inBlockResource.add(_conter);
-  }
-
-  void dispose() {
-    _StateController.close();
-    _BlockResourceEventController.close();
-  }
-}
-
-class CounterDB {
-  List<Counter> counterList = [];
-}
-
-class Counter {
-  int counter;
-  int id;
-  Counter() {
-    refresh();
-  }
-  Future<void> refresh() {}
 }
