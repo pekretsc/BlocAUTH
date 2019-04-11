@@ -270,6 +270,43 @@ class DBBloc {
     }
   }
 
+  Future<void> _mapAddValueInMap(
+      {@required String collectionName,
+        @required String documentName,
+        @required String keyOfValue,
+        @required String mapKeyVal,
+        @required dynamic newValue})async{
+
+
+
+    final DocumentReference postRef =
+    _instance.collection(collectionName).document(documentName);
+
+    _instance.runTransaction((Transaction tx)async{
+
+      DocumentSnapshot postSnapshot = await tx.get(postRef);
+
+
+
+      if (postSnapshot.exists) {
+        try {
+
+        } catch (error) {
+          print(error.message);
+          print(error.toString());
+        }
+        try {
+
+
+        } catch (error) {
+          print(error.message);
+          print(error.toString());
+        }
+      }
+    });
+  }
+
+
   Future<void> _mapChangeValueInMap(
       {@required String collectionName,
       @required String documentName,

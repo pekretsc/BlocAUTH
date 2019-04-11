@@ -134,7 +134,7 @@ class _FireDBPageState extends State<FireDBPage> {
                         decoration: InputDecoration(hintText: 'New Value'),
                         autovalidate: true,
                         validator: (value) {
-                          dynamicValue = int.parse(value);
+                          dynamicValue = value;
                         },
                       ),
                       RaisedButton(
